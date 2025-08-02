@@ -11,6 +11,7 @@ function LoginAdmin() {
   const handleForm = async () => {
     navigate('/formulario')
   };
+  
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -25,6 +26,9 @@ function LoginAdmin() {
       });
 
       if (res.data.success) {
+      
+        localStorage.setItem('token', 'logueado');
+
         alert('Bienvenido ' + res.data.admin.nombre);
         navigate('/home');
       } else {
@@ -35,6 +39,7 @@ function LoginAdmin() {
       alert('Error al conectar con el servidor');
     }
   };
+
 
   return (
     <div style={styles.wrapper}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [quejas, setQuejas] = useState([]);
@@ -8,6 +9,16 @@ const Home = () => {
   const [seleccionada, setSeleccionada] = useState(null);
   const [mostrarImagen, setMostrarImagen] = useState(false);
   const [mostrarFirma, setMostrarFirma] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    const confirmar = window.confirm('¿Seguro que quieres cerrar sesión?');
+    if (confirmar) {
+      localStorage.removeItem('token');
+      navigate('/');
+    }
+  };
 
   const fetchQuejas = async () => {
     try {
@@ -34,8 +45,13 @@ const Home = () => {
 
   return (
     <div style={styles.container}>
+      <div style={styles.logoutContainer}>
+        <button style={styles.logoutButton} onClick={handleLogout}>Cerrar sesión</button>
+      </div>
+
       <div style={styles.contentBox}>
         <h2 style={styles.heading}>Panel de Administrador - Quejas</h2>
+
         {/* Filtros */}
         <div style={styles.filterSection}>
           <div style={styles.filterGroup}>
@@ -86,14 +102,15 @@ const Home = () => {
                   <tr>
                     <td style={styles.td}>{q.apellido || 'anonimo'}</td>
                     <td style={styles.td}>{q.comentario}</td>
-                    <td style={styles.td}>{q.area}</td>
+                    <td style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{q.area}</td>
                     <td style={styles.td}>{new Date(q.fechaQueja).toLocaleDateString()}</td>
                     <td style={styles.td}>
                       <button
                         style={styles.buttonView}
-                        onClick={() => setSeleccionada(seleccionada?.id === q.id ? null : q)}>{seleccionada?.id === q.id ? 'Cerrar' : 'Ver más'}
+                        onClick={() => setSeleccionada(seleccionada?.id === q.id ? null : q)}
+                      >
+                        {seleccionada?.id === q.id ? 'Cerrar' : 'Ver más'}
                       </button>
-
                     </td>
                   </tr>
 
@@ -105,10 +122,11 @@ const Home = () => {
                           <p><strong>Fecha del incidente:</strong> {new Date(seleccionada.fechaIncidente).toLocaleDateString()}</p>
                           <p><strong>Nombre:</strong> {seleccionada.nombre || 'Anonimo'}</p>
                           <p><strong>Apellido:</strong> {seleccionada.apellido || '---'}</p>
-                          <p><strong>Área:</strong> {seleccionada.area}</p>
+                          <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}><strong>Área:</strong> {seleccionada.area}</p>
                           <p><strong>Comentario:</strong> {seleccionada.comentario}</p>
-                          <p><strong>Descripción:</strong> {seleccionada.descripcion}</p>
+                          <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}><strong>Descripción:</strong> {seleccionada.descripcion}</p>
                           <p><strong>¿Anónimo?:</strong> {seleccionada.anonimo ? 'Sí' : 'No'}</p>
+
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                             <strong>Firma:</strong>
                             {seleccionada.firma ? (
@@ -121,9 +139,6 @@ const Home = () => {
                               <button onClick={() => setMostrarImagen(true)} style={styles.buttonView}>Ver imagen</button>
                             ) : 'Sin evidencia'}
                           </div>
-
-                          
-                          
                         </div>
                       </td>
                     </tr>
@@ -134,29 +149,42 @@ const Home = () => {
           </tbody>
         </table>
 
-            {/* Modal de imagen */}
-            {mostrarImagen && seleccionada?.evidencia && (
-              <div style={styles.imageModal} onClick={() => setMostrarImagen(false)}>
-                <img src={seleccionada.evidencia} alt="Evidencia" style={styles.modalImage} />
-              </div>
-            )}
-
-            {/* Modal de firma */}
-            {mostrarFirma && seleccionada?.firma && (
-              <div style={styles.signatureModal} onClick={() => setMostrarFirma(false)}>
-                <img src={seleccionada.firma} alt="Firma" style={styles.modalImage} />
-              </div>
-            )}
-
-            
+        {/* Modales */}
+        {mostrarImagen && seleccionada?.evidencia && (
+          <div style={styles.imageModal} onClick={() => setMostrarImagen(false)}>
+            <img src={seleccionada.evidencia} alt="Evidencia" style={styles.modalImage} />
+          </div>
+        )}
+        {mostrarFirma && seleccionada?.firma && (
+          <div style={styles.signatureModal} onClick={() => setMostrarFirma(false)}>
+            <img src={seleccionada.firma} alt="Firma" style={styles.modalImage} />
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
+
 export default Home;
 
   const styles = {
+
+    logoutContainer: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      padding: '10px 20px'
+    },
+    logoutButton: {
+      backgroundColor: '#c62828',
+      color: 'white',
+      border: 'none',
+      borderRadius: '6px',
+      padding: '8px 14px',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s'
+    },
+
     container: {
       display: 'flex',
       flexDirection: 'column',
@@ -167,6 +195,7 @@ export default Home;
       padding: '40px 20px',
       fontFamily: 'Arial, sans-serif',
       color: '#263238',
+      maxWidth:'100%',
     },
     contentBox: {
       width: '90%',
