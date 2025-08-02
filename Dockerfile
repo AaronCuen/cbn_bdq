@@ -1,5 +1,5 @@
 # Stage 1: Build Vite App
-FROM node:22 as build
+FROM node:22 AS build
 
 WORKDIR /app
 COPY package*.json ./
