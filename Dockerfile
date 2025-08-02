@@ -1,20 +1,16 @@
-# Usa una imagen oficial de Node.js
-FROM node:22
+# Stage 1: Build Vite App
+FROM node:22 as build
 
-# Crea y define el directorio de trabajo
 WORKDIR /app
-
-# Copia los archivos del proyecto al contenedor
 COPY package*.json ./
-
-# Instala las dependencias del proyecto
 RUN npm install
-
-# Copia el resto de los archivos
 COPY . .
+RUN npm run build
 
-# Expone el puerto (cámbialo si tu servidor usa otro)
-EXPOSE 9000
+# Stage 2: Serve with NGINX
+FROM nginx:alpine  # Aquí sí alpine porque NGINX no da problemas.
 
-# Comando para ejecutar el servidor
-CMD ["node", "server.js"]
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
