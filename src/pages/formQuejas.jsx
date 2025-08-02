@@ -82,7 +82,7 @@ const ComplaintForm = () => {
         firma: uploadRes.data.secure_url,
       };
 
-      await axios.post('http://localhost:4000/quejas', dataToSend);
+      await axios.post('http://vog40wk0ok8k0wc0oswss440.31.97.136.112.sslip.io/quejas', dataToSend);
       alert('Formulario enviado con éxito');
     } catch (err) {
       console.error('Error al enviar el formulario:', err);
