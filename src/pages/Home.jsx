@@ -7,6 +7,7 @@ const Home = () => {
   const [fechaFiltro, setFechaFiltro] = useState('');
   const [seleccionada, setSeleccionada] = useState(null);
   const [mostrarImagen, setMostrarImagen] = useState(false);
+  const [mostrarFirma, setMostrarFirma] = useState(false);
 
   const fetchQuejas = async () => {
     try {
@@ -83,7 +84,7 @@ const Home = () => {
               quejas.map((q) => (
                 <React.Fragment key={q.id}>
                   <tr>
-                    <td style={styles.td}>{q.apellido}</td>
+                    <td style={styles.td}>{q.apellido || 'anonimo'}</td>
                     <td style={styles.td}>{q.comentario}</td>
                     <td style={styles.td}>{q.area}</td>
                     <td style={styles.td}>{new Date(q.fechaQueja).toLocaleDateString()}</td>
@@ -102,24 +103,27 @@ const Home = () => {
                         <div style={styles.detailBox}>
                           <h3 style={styles.detailTitle}>Detalles de la Queja</h3>
                           <p><strong>Fecha del incidente:</strong> {new Date(seleccionada.fechaIncidente).toLocaleDateString()}</p>
-                          <p><strong>Nombre:</strong> {seleccionada.nombre || '---'}</p>
-                          <p><strong>Apellido:</strong> {seleccionada.apellido}</p>
+                          <p><strong>Nombre:</strong> {seleccionada.nombre || 'Anonimo'}</p>
+                          <p><strong>Apellido:</strong> {seleccionada.apellido || '---'}</p>
                           <p><strong>Área:</strong> {seleccionada.area}</p>
                           <p><strong>Comentario:</strong> {seleccionada.comentario}</p>
                           <p><strong>Descripción:</strong> {seleccionada.descripcion}</p>
                           <p><strong>¿Anónimo?:</strong> {seleccionada.anonimo ? 'Sí' : 'No'}</p>
-                          <p><strong>Firma:</strong> {seleccionada.firma || '---'}</p>
-                          <p>
-                            <strong>Evidencia:</strong>{' '}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                            <strong>Firma:</strong>
+                            {seleccionada.firma ? (
+                              <button onClick={() => setMostrarFirma(true)} style={styles.buttonView}>Ver firma</button>
+                            ) : '---'}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                            <strong>Evidencia:</strong>
                             {seleccionada.evidencia ? (
-                              <button
-                                onClick={() => setMostrarImagen(true)}
-                                style={{ ...styles.buttonView, marginLeft: '10px' }}
-                              >
-                                Ver imagen
-                              </button>
+                              <button onClick={() => setMostrarImagen(true)} style={styles.buttonView}>Ver imagen</button>
                             ) : 'Sin evidencia'}
-                          </p>
+                          </div>
+
+                          
+                          
                         </div>
                       </td>
                     </tr>
@@ -130,13 +134,21 @@ const Home = () => {
           </tbody>
         </table>
 
-        {/* Modal de imagen */}
-{mostrarImagen && seleccionada?.evidencia && (
-  <div style={styles.imageModal} onClick={() => setMostrarImagen(false)}>
-    <img src={seleccionada.evidencia} alt="Evidencia" style={styles.modalImage} />
-  </div>
-)}
+            {/* Modal de imagen */}
+            {mostrarImagen && seleccionada?.evidencia && (
+              <div style={styles.imageModal} onClick={() => setMostrarImagen(false)}>
+                <img src={seleccionada.evidencia} alt="Evidencia" style={styles.modalImage} />
+              </div>
+            )}
 
+            {/* Modal de firma */}
+            {mostrarFirma && seleccionada?.firma && (
+              <div style={styles.signatureModal} onClick={() => setMostrarFirma(false)}>
+                <img src={seleccionada.firma} alt="Firma" style={styles.modalImage} />
+              </div>
+            )}
+
+            
       </div>
     </div>
   );
@@ -219,7 +231,9 @@ export default Home;
       padding: '8px 14px',
       cursor: 'pointer',
       transition: 'background-color 0.3s',
-    },
+      float: 'right' //
+    },  
+
     detailBox: {
       marginTop: '35px',
       padding: '25px',
@@ -254,6 +268,19 @@ export default Home;
     width: '100vw',
     height: '100vh',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000, // <-- Asegúrate que esté por encima de todo
+    cursor: 'pointer'
+  },
+  signatureModal: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
