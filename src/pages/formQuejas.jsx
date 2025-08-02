@@ -7,6 +7,7 @@ const CLOUD_NAME = 'doptv8gka';
 const UPLOAD_PRESET = 'ml_default';
 
 const ComplaintForm = () => {
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     fechaIncidente: '',
     nombre: '',
@@ -18,6 +19,7 @@ const ComplaintForm = () => {
     evidencia: '',
   });
 
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
   const sigCanvas = useRef(null);
 
   const handleChange = (e) => {
@@ -28,25 +30,18 @@ const ComplaintForm = () => {
     }));
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageSelection = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const imageData = new FormData();
-    imageData.append('file', file);
-    imageData.append('upload_preset', UPLOAD_PRESET);
+    setSelectedImageFile(file);
 
-    try {
-      const res = await axios.post(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        imageData
-      );
-      setFormData((prev) => ({ ...prev, evidencia: res.data.secure_url }));
-      alert('Imagen subida correctamente');
-    } catch (err) {
-      console.error('Error subiendo imagen:', err);
-      alert('Error al subir la imagen');
-    }
+    // Mostrar vista previa (opcional)
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, evidencia: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const dataURLToBlob = (dataURL) => {
@@ -61,10 +56,24 @@ const ComplaintForm = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  e.preventDefault();
 
     try {
+      let evidenciaURL = '';
+
+      if (selectedImageFile) {
+        const imageData = new FormData();
+        imageData.append('file', selectedImageFile);
+        imageData.append('upload_preset', UPLOAD_PRESET);
+
+        const res = await axios.post(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+          imageData
+        );
+
+        evidenciaURL = res.data.secure_url;
+      }
+
       const dataURL = sigCanvas.current.getCanvas().toDataURL('image/png');
       const blob = dataURLToBlob(dataURL);
 
@@ -79,16 +88,45 @@ const ComplaintForm = () => {
 
       const dataToSend = {
         ...formData,
+        evidencia: evidenciaURL,
         firma: uploadRes.data.secure_url,
       };
 
+      
+      if (formData.anonimo === 'true') {
+        delete dataToSend.nombre;
+        delete dataToSend.apellido;
+      } 
+
+
       await axios.post('http://vog40wk0ok8k0wc0oswss440.31.97.136.112.sslip.io/quejas', dataToSend);
       alert('Formulario enviado con éxito');
+
+      
+      setFormData({
+        fechaIncidente: '',
+        nombre: '',
+        apellido: '',
+        comentario: '',
+        area: '',
+        descripcion: '',
+        anonimo: 'false',
+        evidencia: '',
+      });
+      setSelectedImageFile(null);
+
+      sigCanvas.current.clear();
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; 
+      }
+
     } catch (err) {
       console.error('Error al enviar el formulario:', err);
       alert('Error al enviar el formulario');
     }
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
@@ -189,9 +227,10 @@ const ComplaintForm = () => {
       </label>
 
       <label>Evidencia (imagen):
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
+        <input type="file" accept="image/*" onChange={handleImageSelection} ref={fileInputRef}/>
         {formData.evidencia && (
           <img src={formData.evidencia} alt="evidencia" className="preview-img" />
+          
         )}
       </label>
 
@@ -209,7 +248,9 @@ const ComplaintForm = () => {
     </form>
   );
 };
+
 export default ComplaintForm;
+
 
 const styles = {
 formButton: {
