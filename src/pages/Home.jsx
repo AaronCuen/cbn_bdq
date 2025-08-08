@@ -25,7 +25,7 @@ const Home = () => {
 
   const fetchQuejas = async () => {
     try {
-      const response = await axios.get('http://vog40wk0ok8k0wc0oswss440.31.97.136.112.sslip.io/quejas-filtradas', {
+      const response = await axios.get('http://localhost:4000/quejas-filtradas', {
         params: {
           comentario: tipoFiltro,
           fecha: fechaFiltro
@@ -54,8 +54,6 @@ const Home = () => {
         <ul style={styles.navList}>
           <li style={styles.navItem} onClick={() => navigate(0)}>Dashboard</li>
           <li style={styles.navItem} onClick={() => navigate('/formulario')}>Formulario</li>
-          <li style={styles.navItem}>Usuarios</li>
-          <li style={styles.navItem}>Ajustes</li>
           <li style={styles.navItem} onClick={handleLogout}>
             <LuLogOut style={{ marginRight: 8 }} />
             Cerrar sesión
@@ -116,7 +114,7 @@ const Home = () => {
                 quejas.map((q) => (
                   <React.Fragment key={q.id}>
                     <tr>
-                      <td style={styles.td}>{q.apellido || 'Anonimo'}</td>
+                      <td style={styles.td}>{q.nombre || 'Anonimo'}</td>
                       <td style={styles.td}>{q.comentario}</td>
                       <td style={{ ...styles.td, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{q.area}</td>
                       <td style={styles.td}>{new Date(q.fechaQueja).toLocaleDateString()}</td>
