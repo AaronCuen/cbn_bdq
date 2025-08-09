@@ -25,7 +25,7 @@ const Home = () => {
 
   const fetchQuejas = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/quejas-filtradas', {
+      const response = await axios.get('http://vog40wk0ok8k0wc0oswss440.31.97.136.112.sslip.io/quejas-filtradas', {
         params: {
           comentario: tipoFiltro,
           fecha: fechaFiltro
