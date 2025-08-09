@@ -207,56 +207,112 @@ const ComplaintForm = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      let evidenciaURL = '';
-      if (selectedImageFile) {
-        const imageData = new FormData();
-        imageData.append('file', selectedImageFile);
-        imageData.append('upload_preset', UPLOAD_PRESET);
-        const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, imageData);
-        evidenciaURL = res.data.secure_url;
+      e.preventDefault();
+
+      // Validaciones antes de enviar
+      if (formData.anonimo === 'false') {
+        if (!formData.nombre.trim() || !formData.apellido.trim()) {
+          alert('Por favor, complete nombre y apellido.');
+          return;
+        }
       }
 
-      const dataURL = sigCanvas.current.getCanvas().toDataURL('image/png');
-      const blob = dataURLToBlob(dataURL);
-      const formDataSignature = new FormData();
-      formDataSignature.append('file', blob);
-      formDataSignature.append('upload_preset', UPLOAD_PRESET);
-      const uploadRes = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, formDataSignature);
-
-      const dataToSend = {
-        ...formData,
-        evidencia: evidenciaURL,
-        firma: uploadRes.data.secure_url,
-      };
-
-      if (formData.anonimo === 'true') {
-        delete dataToSend.nombre;
-        delete dataToSend.apellido;
+      if (!formData.fechaIncidente) {
+        alert('Por favor, seleccione la fecha del incidente.');
+        return;
       }
 
-      await axios.post('http://vog40wk0ok8k0wc0oswss440.31.97.136.112.sslip.io/quejas', dataToSend);
-      alert('Formulario enviado con éxito');
+      // Validar que la fecha no sea futura
+      const hoy = new Date();
+      const fechaSeleccionada = new Date(formData.fechaIncidente);
+      // Quitar la hora para comparar solo fechas
+      hoy.setHours(0,0,0,0);
+      fechaSeleccionada.setHours(0,0,0,0);
 
-      setFormData({
-        fechaIncidente: '',
-        nombre: '',
-        apellido: '',
-        comentario: '',
-        area: '',
-        descripcion: '',
-        anonimo: 'false',
-        evidencia: '',
-      });
-      setSelectedImageFile(null);
-      sigCanvas.current.clear();
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err) {
-      console.error('Error al enviar el formulario:', err);
-      alert('Error al enviar el formulario');
-    }
-  };
+      if (fechaSeleccionada > hoy) {
+        alert('La fecha del incidente no puede ser futura.');
+        return;
+      }
+
+      if (!formData.comentario) {
+        alert('Por favor, seleccione el tipo de comentario.');
+        return;
+      }
+
+      if (!formData.area.trim()) {
+        alert('Por favor, indique el área.');
+        return;
+      }
+
+      if (!formData.descripcion.trim()) {
+        alert('Por favor, describa el incidente.');
+        return;
+      }
+
+      if (sigCanvas.current && sigCanvas.current.isEmpty && sigCanvas.current.isEmpty()) {
+        alert('Por favor, firme antes de enviar.');
+        return;
+      }
+
+      try {
+        let evidenciaURL = '';
+        if (selectedImageFile) {
+          const imageData = new FormData();
+          imageData.append('file', selectedImageFile);
+          imageData.append('upload_preset', UPLOAD_PRESET);
+          const res = await axios.post(
+            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+            imageData
+          );
+          evidenciaURL = res.data.secure_url;
+        }
+
+        const dataURL = sigCanvas.current.getCanvas().toDataURL('image/png');
+        const blob = dataURLToBlob(dataURL);
+        const formDataSignature = new FormData();
+        formDataSignature.append('file', blob);
+        formDataSignature.append('upload_preset', UPLOAD_PRESET);
+        const uploadRes = await axios.post(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+          formDataSignature
+        );
+
+        const dataToSend = {
+          ...formData,
+          evidencia: evidenciaURL,
+          firma: uploadRes.data.secure_url,
+        };
+
+        if (formData.anonimo === 'true') {
+          delete dataToSend.nombre;
+          delete dataToSend.apellido;
+        }
+
+        await axios.post(
+          'http://vog40wk0ok8k0wc0oswss440.31.97.136.112.sslip.io/quejas',
+          dataToSend
+        );
+        alert('Formulario enviado con éxito');
+
+        setFormData({
+          fechaIncidente: '',
+          nombre: '',
+          apellido: '',
+          comentario: '',
+          area: '',
+          descripcion: '',
+          anonimo: 'false',
+          evidencia: '',
+        });
+        setSelectedImageFile(null);
+        sigCanvas.current.clear();
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } catch (err) {
+        console.error('Error al enviar el formulario:', err);
+        alert('Error al enviar el formulario');
+      }
+    };
+
 
   return (
     <div style={styles.pageWrapper}>
